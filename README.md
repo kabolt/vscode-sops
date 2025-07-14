@@ -21,6 +21,7 @@ This extension allows you to open a SOPS-encrypted file, view its decrypted cont
 
 ## Requirements
 
+*   A `.sops.yaml` configuration file at the root of your project is required for the extension to activate.
 *   [SOPS](https://github.com/mozilla/sops) must be installed and available in your system's PATH.
 *   You need to have your encryption keys (e.g., GPG, AWS KMS, etc.) configured correctly for SOPS to use.
 

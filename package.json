@@ -1,7 +1,7 @@
 {
-  "name": "vscode-sops",
+  "name": "vscode-sops-editor",
   "publisher": "kabolt",
-  "displayName": "vscode-spos",
+  "displayName": "@kabolt/vscode-spos",
   "description": "Vscode extension for encrypt and decrypt files with sops on the fly ",
   "version": "0.0.1",
   "repository": {

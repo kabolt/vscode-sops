@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/kabolt/vscode-sops"
   },
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.101.0"
   },

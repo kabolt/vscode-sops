@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as l10n from '@vscode/l10n';
+import { l10n } from 'vscode';
 import { decryptToTempFile, encryptAndReplaceOriginal, isSopsEncrypted, cleanupTempFile, getApplicableCreationRules, encryptFile } from './sopsHandler';
 
 /**

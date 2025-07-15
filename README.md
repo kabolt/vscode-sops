@@ -10,6 +10,7 @@ This extension allows you to open a SOPS-encrypted file, view its decrypted cont
 *   **Automatic Encryption**: Re-encrypts your changes when you save the temporary decrypted file.
 *   **Safe by Default**: Works on a temporary copy of your file, and restores a backup if encryption fails for any reason.
 *   **Seamless Integration**: Uses your existing `sops` configuration.
+*   **Encrypt New Files**: Easily encrypt a plaintext file using the `creation_rules` from your `.sops.yaml` file.
 
 ## How It Works
 
@@ -18,6 +19,11 @@ This extension allows you to open a SOPS-encrypted file, view its decrypted cont
 3.  You can edit the temporary file as you normally would.
 4.  When you save the temporary file, the extension takes its content and runs `sops --encrypt --in-place` on the original encrypted file.
 5.  The temporary file is then deleted.
+
+For new files encryption, the extension will look for an applicable `creation_rule` in your `.sops.yaml` file.
+*   It will first look for a rule with a `path_regex` that matches the file path.
+*   If no specific rule is found, it will use a "fallback" rule that has no `path_regex`.
+*   If multiple rules apply, you will be prompted to choose which one to use.
 
 ## Requirements
 
@@ -28,10 +34,21 @@ This extension allows you to open a SOPS-encrypted file, view its decrypted cont
 ## Usage
 
 1.  Install the extension from the Visual Studio Code Marketplace.
-2.  Open a SOPS-encrypted file (e.g., `secrets.yaml`).
-3.  A new tab will open with the decrypted content (e.g., `secrets_decrypted.yaml`).
-4.  Edit the content in the decrypted file.
-5.  Save the decrypted file. The original file will be updated with the new encrypted content.
+
+### Edit encrypted files
+
+1.  Open a SOPS-encrypted file (e.g., `secrets.yaml`).
+2.  A new tab will open with the decrypted content (e.g., `secrets_decrypted.yaml`).
+3.  Edit the content in the decrypted file.
+4.  Save the decrypted file. The original file will be updated with the new encrypted content.
+
+### Encrypting New Files
+
+You can encrypt a file that is not yet encrypted by using the `SOPS: Encrypt File` command.
+
+1.  Right-click on a plaintext file in the explorer.
+2.  Select `SOPS: Encrypt File` from the context menu.
+3.  Alternatively, open the file and run `SOPS: Encrypt File` from the Command Palette.
 
 ## Configuration
 

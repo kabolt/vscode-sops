@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { decryptToTempFile, encryptAndReplaceOriginal, isSopsEncrypted, cleanupTempFile } from './sopsHandler';
+import { decryptToTempFile, encryptAndReplaceOriginal, isSopsEncrypted, cleanupTempFile, getApplicableCreationRules, encryptFile } from './sopsHandler';
 
 /**
  * Manages the state and logic for handling SOPS-encrypted files.
@@ -28,8 +28,60 @@ export class SopsContext {
             vscode.workspace.onDidSaveTextDocument(this.onDidSaveTextDocument.bind(this)),
             vscode.workspace.onDidCloseTextDocument(this.onDidCloseTextDocument.bind(this)),
             vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor.bind(this)),
-            vscode.workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this))
+            vscode.workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
+            vscode.commands.registerCommand('sops.encryptFile', this.onEncryptFile.bind(this))
         );
+    }
+
+    private async onEncryptFile(uri?: vscode.Uri) {
+        let fileUri = uri;
+        if (!fileUri) {
+            const activeEditor = vscode.window.activeTextEditor;
+            if (activeEditor) {
+                fileUri = activeEditor.document.uri;
+            }
+        }
+
+        if (!fileUri) {
+            vscode.window.showErrorMessage('No file selected or active editor.');
+            return;
+        }
+        const filePath = fileUri.fsPath;
+
+        const isEncrypted = await isSopsEncrypted(await vscode.workspace.fs.readFile(fileUri).then(content => content.toString()));
+        if (isEncrypted) {
+            vscode.window.showInformationMessage('File is already encrypted with SOPS.');
+            return;
+        }
+
+        const creationRules = await getApplicableCreationRules(filePath);
+        if (creationRules.length === 0) {
+            vscode.window.showErrorMessage(`No SOPS creation rule found for ${filePath}.`);
+            return;
+        }
+
+        let selectedRule: any;
+        if (creationRules.length > 1) {
+            const items = creationRules.map(rule => ({
+                label: Object.keys(rule).filter(k => k !== 'path_regex').map(k => `${k}: ${rule[k]}`).join(', '),
+                description: rule.path_regex ? `(path_regex: ${rule.path_regex})` : '(Fallback rule)',
+                rule: rule
+            }));
+            const picked = await vscode.window.showQuickPick(items, { placeHolder: 'Select a SOPS creation rule to use for encryption' });
+            if (!picked) {
+                return; // User cancelled
+            }
+            selectedRule = picked.rule;
+        } else {
+            selectedRule = creationRules[0];
+        }
+
+        try {
+            await encryptFile(filePath, selectedRule);
+            vscode.window.showInformationMessage(`Successfully encrypted ${filePath}`);
+        } catch (error: any) {
+            vscode.window.showErrorMessage(`Failed to encrypt ${filePath}: ${error.message}`);
+        }
     }
 
     /**

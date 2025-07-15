@@ -4,6 +4,8 @@ A Visual Studio Code extension for seamlessly encrypting and decrypting files wi
 
 This extension allows you to open a SOPS-encrypted file, view its decrypted content in a temporary file, and automatically re-encrypt the content when you save your changes.
 
+You can install this extension directly from vscode (kabolt.vscode-sops-editor) or from the [marketplace](https://marketplace.visualstudio.com/items?itemName=kabolt.vscode-sops-editor)
+
 ## Features
 
 *   **Transparent Decryption**: Automatically decrypts SOPS-encrypted files when you open them.

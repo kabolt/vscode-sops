@@ -1,0 +1,6 @@
+{
+    "displayName": "@kabolt/vscode-sops",
+    "description": "Extension Vscode pour chiffrer et déchiffrer des fichiers avec sops à la volée",
+    "sops.encryptFile.title": "SOPS : Chiffrer le fichier",
+    "sops.category": "SOPS"
+}

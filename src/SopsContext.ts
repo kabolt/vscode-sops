@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as l10n from '@vscode/l10n';
 import { decryptToTempFile, encryptAndReplaceOriginal, isSopsEncrypted, cleanupTempFile, getApplicableCreationRules, encryptFile } from './sopsHandler';
 
 /**
@@ -14,7 +15,7 @@ export class SopsContext {
     constructor() {
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
         this.statusBarItem.text = "$(lock) SOPS";
-        this.statusBarItem.tooltip = "SOPS encrypted file";
+        this.statusBarItem.tooltip = l10n.t("SOPS encrypted file");
         this.statusBarItem.hide();
     }
 
@@ -43,20 +44,20 @@ export class SopsContext {
         }
 
         if (!fileUri) {
-            vscode.window.showErrorMessage('No file selected or active editor.');
+            vscode.window.showErrorMessage(l10n.t('No file selected or active editor.'));
             return;
         }
         const filePath = fileUri.fsPath;
 
         const isEncrypted = await isSopsEncrypted(await vscode.workspace.fs.readFile(fileUri).then(content => content.toString()));
         if (isEncrypted) {
-            vscode.window.showInformationMessage('File is already encrypted with SOPS.');
+            vscode.window.showInformationMessage(l10n.t('File is already encrypted with SOPS.'));
             return;
         }
 
         const creationRules = await getApplicableCreationRules(filePath);
         if (creationRules.length === 0) {
-            vscode.window.showErrorMessage(`No SOPS creation rule found for ${filePath}.`);
+            vscode.window.showErrorMessage(l10n.t('No SOPS creation rule found for {0}.', filePath));
             return;
         }
 
@@ -64,10 +65,10 @@ export class SopsContext {
         if (creationRules.length > 1) {
             const items = creationRules.map(rule => ({
                 label: Object.keys(rule).filter(k => k !== 'path_regex').map(k => `${k}: ${rule[k]}`).join(', '),
-                description: rule.path_regex ? `(path_regex: ${rule.path_regex})` : '(Fallback rule)',
+                description: rule.path_regex ? l10n.t('(path_regex: {0})', rule.path_regex) : l10n.t('(Fallback rule)'),
                 rule: rule
             }));
-            const picked = await vscode.window.showQuickPick(items, { placeHolder: 'Select a SOPS creation rule to use for encryption' });
+            const picked = await vscode.window.showQuickPick(items, { placeHolder: l10n.t('Select a SOPS creation rule to use for encryption') });
             if (!picked) {
                 return; // User cancelled
             }
@@ -78,9 +79,9 @@ export class SopsContext {
 
         try {
             await encryptFile(filePath, selectedRule);
-            vscode.window.showInformationMessage(`Successfully encrypted ${filePath}`);
+            vscode.window.showInformationMessage(l10n.t('Successfully encrypted {0}', filePath));
         } catch (error: any) {
-            vscode.window.showErrorMessage(`Failed to encrypt ${filePath}: ${error.message}`);
+            vscode.window.showErrorMessage(l10n.t('Failed to encrypt {0}: {1}', filePath, error.message));
         }
     }
 
@@ -94,9 +95,9 @@ export class SopsContext {
             const originalPath = this.tempToOriginalMap.get(tempPath)!;
             try {
                 await encryptAndReplaceOriginal(document.getText(), originalPath);
-                vscode.window.showInformationMessage(`Successfully re-encrypted ${originalPath}`);
+                vscode.window.showInformationMessage(l10n.t('Successfully re-encrypted {0}', originalPath));
             } catch (error: any) {
-                vscode.window.showErrorMessage(`Failed to re-encrypt ${originalPath}: ${error.message}`);
+                vscode.window.showErrorMessage(l10n.t('Failed to re-encrypt {0}: {1}', originalPath, error.message));
             }
         }
     }
@@ -192,7 +193,7 @@ export class SopsContext {
                 const tempDoc = await vscode.workspace.openTextDocument(newTempPath);
                 await vscode.window.showTextDocument(tempDoc, { preview: false, viewColumn: vscode.ViewColumn.Active });
             } catch (error: any) {
-                vscode.window.showErrorMessage(`SOPS decryption failed: ${error.message}`);
+                vscode.window.showErrorMessage(l10n.t('SOPS decryption failed: {0}', error.message));
             }
         }
     }
@@ -204,12 +205,12 @@ export class SopsContext {
         const activePath = editor?.document.fileName;
         if (editor && activePath) {
             if (this.tempToOriginalMap.has(activePath)) {
-                this.statusBarItem.text = "$(unlock) SOPS (Decrypted)";
-                this.statusBarItem.tooltip = `Decrypted file. Original: ${this.tempToOriginalMap.get(activePath)}`;
+                this.statusBarItem.text = l10n.t('$(unlock) SOPS (Decrypted)');
+                this.statusBarItem.tooltip = l10n.t('Decrypted file. Original: {0}', this.tempToOriginalMap.get(activePath)!);
                 this.statusBarItem.show();
             } else if (this.originalToTempMap.has(activePath)) {
                 this.statusBarItem.text = "$(lock) SOPS";
-                this.statusBarItem.tooltip = "Encrypted file. Decrypted version is already open.";
+                this.statusBarItem.tooltip = l10n.t("Encrypted file. Decrypted version is already open.");
                 this.statusBarItem.show();
             } else {
                 this.statusBarItem.hide();
